@@ -76,7 +76,7 @@ class IRReading:
 	def _SimplifyIRReading(value):
 		min_value = 15
 		max_value = 1800 # Those values need to be determined! This is placeholder!
-		return (value - min_value) / (max_value - min_value) * 100.0 # Percentage, might be floating point
+		return  100.0 * (value - min_value) / (max_value - min_value) # Percentage, might be floating point
 	def Reset(self):
 		pass # Nothing
 	def __str__(self):
