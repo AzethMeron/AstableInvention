@@ -231,7 +231,7 @@ class RoombaModel(RosNode):
 	###################################################################################################
 
 class Job: # Composite, just to make JobEngine code more readable
-	def __init__(self, x, y, angle):
+	def __init__(self, x, y, angle = None):
 		self.x = x
 		self.y = y
 		self.angle = angle
@@ -257,7 +257,7 @@ class JobEngine:
 		at = self.ToleranceAbsolute
 		# Check whether destination is reached
 		if Tools.Compare(posx, job.x, rt, at) and Tools.Compare(posy, job.y, rt, at):
-			if Tools.Compare(angle, job.angle, rt, at):
+			if job.angle is None or Tools.Compare(angle, job.angle, rt, at):
 				self.Abort()
 				return True
 			# Final rotation
@@ -295,7 +295,8 @@ class AstableInvention(RoombaModel):
 	# self.Bumper
 	#	self.Bumper.State # State within last "tick"
 	# self.Odometry
-	#	self.Odometry.PosX, self.Odometry.PosY, self.Odometry.PosZ, self.Odometry.Angle
+	#	self.Odometry.PosX, self.Odometry.PosY, self.Odometry.Angle
+	#	Odometry will need to support also Update(x,y,angle) but for now it doesn't
 	# self.IR
 	# 	self.IR.front_center_left
 	#	self.IR.front_center_right
@@ -328,8 +329,8 @@ class AstableInvention(RoombaModel):
 def main(args=None):
 	rclpy.init(args=args)
 	obj = AstableInvention(0.2)
-	obj.JobEngine.Schedule( Job( -1, -1, 0) )
-	obj.JobEngine.Schedule( Job( -1, -2, 0) )
+	obj.JobEngine.Schedule( Job( -1, 1) )
+	obj.JobEngine.Schedule( Job( -1, -1) )
 	rclpy.spin(obj)
 	# Destroy the node explicitly
 	# (optional - otherwise it will be done automatically
