@@ -38,12 +38,21 @@ Middle layer of abstraction - models used
 
 All numeric values in project are either normalised (like in IRReading class) or decided within corresponding class (for example Velocity takes distance in and decides proper to traverse this distance) There are no hardcoded values for such things in top layer of abstraction.
 
+Reflexes, protection from hazards
+---
+
+Reflexes are features of middle layer. For now, there's only bump reflex, but the codebase for other types is there, it's pretty flexible.
+
+Reflex is triggered when any hazard is detected (for example, when robots hits obstacle with a bumper) Reflex instantly stops the robot, then calls top layer function to let programming know that collision occured (so I can take it into consideration in SLAM) but it also overrides top layer control flow - **top layer can't control robot during reflex**,
+
+Behaviour of robot during reflex is defined by function ObstacleReflexMoonwalk, which has access to all readings from robot so can take proper action to safely get away from hazard. For now, it only moves backward, but more advanced algorithm can be implemented.
+
 
 Top layer of abstraction
 ---
 
-**Classes** in top level of abstraction doesn't use hardcoded numerical values and use only pure-pythonic code, as well as tools supplied by middle layer. It should work as good in simulator as on physical robot, with only fine-tuning of some parameters.
+Classes in top level of abstraction don't use hardcoded numerical values and use only pure-pythonic code, as well as tools supplied by middle layer. It should work as good in simulator as on physical robot, with only fine-tuning of some parameters.
 
-**JobEngine** and Job classes are used to move robot to specified position, with specified final angle. It uses rotate-translate-rotate algorithm and takes absolute tolerance as parameter (it's pretty much impossible to reach position perfectly, even in simulator)
+**JobEngine** and Job classes are used to move robot to specified position, with specified final angle. It uses rotate-translate-rotate algorithm and takes absolute tolerance as parameter (it's pretty much impossible to reach position perfectly, even in simulator) However JobEngine doesn't deal with obstacles in the way, it's task for algorithm above.
 
 **AstableInvention** is in highest level of abstraction, it inherits RoombaModel and utilitizes middle layer + JobEngine for SLAM (not implemented yet)

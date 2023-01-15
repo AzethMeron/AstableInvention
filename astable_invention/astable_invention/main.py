@@ -318,6 +318,7 @@ class AstableInvention(RoombaModel):
 		self.get_logger().info(f"\n{self}\n\n")
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
 		# slam i guess, find next objective (Job)
+		self.Velocity.MoveForward()
 		
 # Commands (important)
 # source install/local_setup.bash
@@ -330,7 +331,7 @@ def main(args=None):
 	rclpy.init(args=args)
 	obj = AstableInvention(0.2)
 	obj.JobEngine.Schedule( Job( -1, 1) )
-	obj.JobEngine.Schedule( Job( -1, -1) )
+	obj.JobEngine.Schedule( Job( -1, -1, 0) )
 	rclpy.spin(obj)
 	# Destroy the node explicitly
 	# (optional - otherwise it will be done automatically
