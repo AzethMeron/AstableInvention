@@ -32,7 +32,7 @@ Middle layer of abstraction - models used
 
 **Velocity** class models differential drive, allows to set two values: linear speed and angular speed. Both of them are signed, floating point numbers.
 
-**IRReading** class models infrared sensors on our robot. It translates readings into percentage form (0 to 100, might be floating point). Sensors: [ side_left, left, front_left, front_center_left, front_center_right, front_right, right ]
+**IRReading** class models infrared sensors on our robot. It translates readings into percentage form (0 to 100, might be floating point, 0 for no reading, 100 for IT'S RIGHT IN FRONT OF ME SEND HELP). Sensors: [ side_left, left, front_left, front_center_left, front_center_right, front_right, right ]
 
 **RoombaModel** class inherits from Node class (which is provided by ROS 2) and implements ROS subsribers, publishers, timers, as well as some (relatively) low-level features like bump reflexes.
 
