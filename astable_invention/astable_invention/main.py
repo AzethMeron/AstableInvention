@@ -19,6 +19,10 @@ from irobot_create_msgs.msg import IrOpcode
 # temporary
 import random
 
+# Note about code
+# If name of class/variable starts with _, it should be used ONLY within this class. Consider it private
+# I might have forgot it requires double underscore to make "private" attribute
+
 class Tools:
 	def Constrain(input, low, high):
 		if input < low:
@@ -100,21 +104,47 @@ class Bumper:
 
 class Odometry:
 	def __init__(self):
-		self.PosX = 0.0; self.PosY = 0.0#; self.PosZ = 0.0
+		self.X = 0.0; self.Y = 0.0#; self.PosZ = 0.0
 		self.Angle = 0.0
+		self.dX = 0.0; self.dY = 0.0
+		self.dAngle = 0.0
+		self._prevX = 0.0; self._prevY = 0.0
+		self._prevAngle = 0.0
 	def ParseTopicMsg(self, msg):
-		self.PosX = msg.pose.pose.position.x
-		self.PosY = msg.pose.pose.position.y
-		#self.PosZ = msg.pose.pose.position.z
+		self.X = msg.pose.pose.position.x
+		self.Y = msg.pose.pose.position.y
 		x = msg.pose.pose.orientation.x
 		y = msg.pose.pose.orientation.y
 		z = msg.pose.pose.orientation.z
 		w = msg.pose.pose.orientation.w
 		self.Angle = Tools.EulerFromQuaterion(x,y,z,w)[2]
+	def Update(self):
+		self.dX = self.X - self._prevX
+		self.dY = self.Y - self._prevY
+		self.dAngle = self.Angle - self._prevAngle
+		self._prevX = self.X
+		self._prevY = self.Y
+		self._prevAngle = self.Angle
 	def Reset(self):
 		pass
 	def __str__(self):
-		return f"Position:\n	x = {self.PosX}\n	y = {self.PosY}\n	Angle = {self.Angle}"
+		pos = f"x = {self.X},	y = {self.Y},	Angle = {self.Angle}"
+		dpos = f"dx = {self.dX},	dy = {self.dY},	Angle = {self.dAngle}"
+		return f"Odometry:\n	{pos}\n	{dpos}"
+
+class Position:
+	def __init__(self):
+		self.X = 0
+		self.Y = 0
+		self.Angle = 0
+	def Update(self, x, y, angle, relative=False):
+		self.X = (self.X if relative else 0) + x
+		self.Y = (self.Y if relative else 0) + y
+		self.Angle = (self.Angle if relative else 0) + angle
+	def Reset(self):
+		pass
+	def __str__(self):
+		return f"Position:\n	x = {self.X},	y = {self.Y},	Angle = {self.Angle}"
 
 class Velocity:
 	def __init__(self, publisher):
@@ -165,6 +195,7 @@ class RoombaModel(RosNode):
 		# creation & initialisation of attributes
 		self.IR = IRReading()
 		self.Odometry = Odometry()
+		self.Position = Position()
 		self.Bumper = Bumper()
 		self.Velocity = Velocity(self._vel_publisher)
 		# other, internal variables, used by features supplied by model
@@ -187,15 +218,21 @@ class RoombaModel(RosNode):
 	###################################################################################################
 		
 	def _loop(self):
+		# Pre-loop action: Position calculations
+		self.Odometry.Update()
+		self.Position.Update(self.Odometry.dX, self.Odometry.dY, self.Odometry.dAngle, True)
+		# Loop itself
 		if not self._ReflexLoop(): self.Loop() # Call overriden method
+		# Post-loop action: Reset states
 		self.ResetState() # Must be called LAST in loop
 	def ResetState(self):
+		self.Odometry.Reset()
 		self.Velocity.Reset()
 		self.Bumper.Reset()
-		self.Odometry.Reset()
 		self.IR.Reset()
+		self.Position.Reset()
 	def __str__(self):
-		output =  f"{str(self.Odometry)}\n{str(self.Velocity)}\n{str(self.Bumper)}\n{str(self.IR)}"
+		output =  f"{str(self.Odometry)}\n{str(self.Position)}\n{str(self.Velocity)}\n{str(self.Bumper)}\n{str(self.IR)}"
 		if self._tmp: output = f"{output}\n{self._tmp}" #append debug info, if any
 		return output
 	
@@ -249,9 +286,9 @@ class JobEngine:
 			if not len(self.Queue): return False # if there's no next in queue, return False
 			self.IsRunning = self.Queue.pop(0) # otherwise, fetch
 		# References - original names too long
-		posx = self.Robot.Odometry.PosX
-		posy = self.Robot.Odometry.PosY
-		angle = self.Robot.Odometry.Angle
+		posx = self.Robot.Position.X
+		posy = self.Robot.Position.Y
+		angle = self.Robot.Position.Angle
 		job = self.IsRunning
 		rt = self.ToleranceRelative
 		at = self.ToleranceAbsolute
@@ -295,8 +332,8 @@ class AstableInvention(RoombaModel):
 	# self.Bumper
 	#	self.Bumper.State # State within last "tick"
 	# self.Odometry
-	#	self.Odometry.PosX, self.Odometry.PosY, self.Odometry.Angle
-	#	Odometry will need to support also Update(x,y,angle) but for now it doesn't
+	#	self.Odometry.X, self.Odometry.Y, self.Odometry.Angle
+	#	self.Odometry.dX, self.Odometry.dY, self.Odometry.dAngle - delta, change of value (from last "tick")
 	# self.IR
 	# 	self.IR.front_center_left
 	#	self.IR.front_center_right
@@ -330,6 +367,7 @@ class AstableInvention(RoombaModel):
 def main(args=None):
 	rclpy.init(args=args)
 	obj = AstableInvention(0.2)
+	obj.Position.Update(obj.Odometry.X, obj.Odometry.Y, obj.Odometry.Angle)
 	obj.JobEngine.Schedule( Job( -1, 1) )
 	obj.JobEngine.Schedule( Job( -1, -1, 0) )
 	rclpy.spin(obj)

@@ -28,7 +28,9 @@ Middle layer of abstraction - models used
 
 **Bumper** class models the physical bumpers of robot, it translates readings from sensor into following states: [ None, "bump_left", "bump_center", "bump_right" ]
 
-**Odometry** class models position of the robot. It provides attributes: PosX, PosY, Angle (in radians, from -π to π) It's possible it will also require DeltaX, DeltaY, DeltaAngle attributes, but those are not implemented right now.
+**Odometry** class models position of the robot. It provides attributes: X, Y, Angle (in radians, from -π to π) and dX, dY, dAngle (deltas, change of value)
+
+**Position** TODO description
 
 **Velocity** class models differential drive, allows to set two values: linear speed and angular speed. Both of them are signed, floating point numbers.
 
