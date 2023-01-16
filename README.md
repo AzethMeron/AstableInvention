@@ -28,9 +28,9 @@ Middle layer of abstraction - models used
 
 **Bumper** class models the physical bumpers of robot, it translates readings from sensor into following states: [ None, "bump_left", "bump_center", "bump_right" ]
 
-**Odometry** class models position of the robot. It provides attributes: X, Y, Angle (in radians, from -π to π) and dX, dY, dAngle (deltas, change of value)
+**Odometry** class models position of the robot. It provides attributes: X, Y, Angle (in radians, from -π to π) and dX, dY, dAngle (deltas, change of value - this is actually calculated by remembering previous value of position and there's no need for hardware to supply those values)
 
-**Position** TODO description
+**Position** class models position of the robot. It provides attributes: X, Y, Angle. It's different than Odometry, because Odometry comes from sensors directly - it's read-only information from bottom layer. Position on other hand CAN be changed. 
 
 **Velocity** class models differential drive, allows to set two values: linear speed and angular speed. Both of them are signed, floating point numbers.
 
@@ -49,6 +49,7 @@ Reflex is triggered when any hazard is detected (for example, when robots hits o
 
 Behaviour of robot during reflex is defined by function ObstacleReflexMoonwalk, which has access to all readings from robot so can take proper action to safely get away from hazard. For now, it only moves backward, but more advanced algorithm can be implemented.
 
+![reflex](images/reflex.mp4)
 
 Top layer of abstraction
 ---

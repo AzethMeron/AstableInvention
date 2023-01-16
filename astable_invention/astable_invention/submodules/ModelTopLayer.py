@@ -101,10 +101,11 @@ class AstableInvention(RoombaModel):
 		self.JobEngine = JobEngine(self, 0, 0.01)
 		self.CvAnchor = CvAnchor()
 	def Loop(self):
-		#self.get_logger().info(f"\n{self}\n\n")
+		self.get_logger().info(f"\n{self}\n\n")
 		# Testing connection
-		frame = self.CvAnchor.Camera.GetFrame()
-		self.CvAnchor.Communication.PutFrame(frame)
-		response = self.CvAnchor.Communication.PopResult()
+		#frame = self.CvAnchor.Camera.GetFrame()
+		#self.CvAnchor.Communication.PutFrame(frame)
+		#response = self.CvAnchor.Communication.PopResult()
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
 		# slam i guess, find next objective (Job)
+		self.Velocity.MoveForward()
