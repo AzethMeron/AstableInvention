@@ -49,7 +49,7 @@ Reflex is triggered when any hazard is detected (for example, when robots hits o
 
 Behaviour of robot during reflex is defined by function ObstacleReflexMoonwalk, which has access to all readings from robot so can take proper action to safely get away from hazard. For now, it only moves backward, but more advanced algorithm can be implemented.
 
-![reflex](https://github.com/AzethMeron/AstableInvention/tree/master/images/reflex.mp4)
+https://github.com/AzethMeron/AstableInvention/tree/master/images/reflex.mp4
 
 Top layer of abstraction
 ---
@@ -58,6 +58,6 @@ Classes in top level of abstraction don't use hardcoded numerical values and use
 
 **JobEngine** and Job classes are used to move robot to specified position, with specified final angle. It uses rotate-translate-rotate algorithm and takes absolute tolerance as parameter (it's pretty much impossible to reach position perfectly, even in simulator) However JobEngine doesn't deal with obstacles in the way, it's task for algorithm above.
 
-![movement](https://github.com/AzethMeron/AstableInvention/tree/master/images/visit_points.mp4)
+https://github.com/AzethMeron/AstableInvention/tree/master/images/visit_points.mp4
 
 **AstableInvention** is in highest level of abstraction, it inherits RoombaModel and utilitizes middle layer + JobEngine for SLAM (not implemented yet)
