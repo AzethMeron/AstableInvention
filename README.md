@@ -49,7 +49,7 @@ Reflex is triggered when any hazard is detected (for example, when robots hits o
 
 Behaviour of robot during reflex is defined by function ObstacleReflexMoonwalk, which has access to all readings from robot so can take proper action to safely get away from hazard. For now, it only moves backward, but more advanced algorithm can be implemented.
 
-![reflex](images/reflex.mp4)
+![reflex](https://github.com/AzethMeron/AstableInvention/tree/master/images)
 
 Top layer of abstraction
 ---
