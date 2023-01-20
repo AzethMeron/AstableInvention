@@ -14,8 +14,10 @@ def main(args=None):
 	rclpy.init(args=args)
 	obj = AstableInvention(0.2)
 	obj.Position.Update(obj.Odometry.X, obj.Odometry.Y, obj.Odometry.Angle)
-	obj.JobEngine.Schedule( Job( -1, 1) )
-	obj.JobEngine.Schedule( Job( -1, -1, 0) )
+	#obj.JobEngine.Schedule( Job( -1, 1) )
+	#obj.JobEngine.Schedule( Job( -1, -1, 0) )
+	#obj.JobEngine.Schedule( Job( -0.5, -0.5, relative=True) )
+	obj.JobEngine.Schedule( Job.Translate(1) )
 	rclpy.spin(obj)
 	# Destroy the node explicitly
 	# (optional - otherwise it will be done automatically

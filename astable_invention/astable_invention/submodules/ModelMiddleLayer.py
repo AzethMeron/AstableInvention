@@ -184,20 +184,26 @@ class RoombaModel(RosNode):
 		
 	###################################################################################################
 		
-	def _loop(self):
-		# Pre-loop action: Position calculations
+	def PreLoopAction(self):
 		self.Odometry.Update()
 		self.Position.Update(self.Odometry.dX, self.Odometry.dY, self.Odometry.dAngle, True)
-		# Loop itself
-		if not self._ReflexLoop(): self.Loop() # Call overriden method
-		# Post-loop action: Reset states
-		self.ResetState() # Must be called LAST in loop
-	def ResetState(self):
+	
+	def PostLoopAction(self):
 		self.Odometry.Reset()
 		self.Velocity.Reset()
 		self.Bumper.Reset()
 		self.IR.Reset()
 		self.Position.Reset()
+	
+	###################################################################################################
+		
+	def _loop(self):
+		# Pre-loop action
+		self.PreLoopAction()
+		# Loop itself
+		if not self._ReflexLoop(): self.Loop() # Call overriden method
+		# Post-loop action:
+		self.PostLoopAction() # Must be called LAST in loop
 	def __str__(self):
 		output =  f"{str(self.Odometry)}\n{str(self.Position)}\n{str(self.Velocity)}\n{str(self.Bumper)}\n{str(self.IR)}"
 		if self._tmp: output = f"{output}\n{self._tmp}" #append debug info, if any

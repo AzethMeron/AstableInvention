@@ -12,10 +12,24 @@ import math
 # I might have forgot it requires double underscore to make "private" attribute
 
 class Job: # Composite, just to make JobEngine code more readable
-	def __init__(self, x, y, angle = None):
+	def __init__(self, x, y, angle = None, relative = False, distance = None):
 		self.x = x
 		self.y = y
-		self.angle = angle
+		self.angle = angle # Set to None to ignore ginal rotation
+		# specials - those are converted on-demand into absolute positions
+		self.relative = relative
+		self.translate = distance # This one overrides every other
+	def Rotate(angle):
+		return Job(0, 0, angle, True)
+	def Translate(distance):
+		r = Job(0,0)
+		r.translate = abs(distance)
+		return r
+	def Absolute(x, y, angle = None):
+		return Job(x,y,angle, relative=False, distance=None)
+	def Relative(x,y, angle = None):
+		return Job(x,y,angle, relative=True, distance=None)
+		
 
 class JobEngine:
 	# Note: ToleranceRelative is pretty useless in this case (actually it's undesired) but i've realized this only AFTER implementing it
@@ -25,11 +39,24 @@ class JobEngine:
 		self.Robot = robot
 		self.ToleranceRelative = ToleranceRelative
 		self.ToleranceAbsolute = ToleranceAbsolute
+	def _ConvertRelativeToAbsolute(self, job):
+		x = self.Robot.Position.X + job.x
+		y = self.Robot.Position.Y + job.y
+		angle = (self.Robot.Position.Angle + job.angle) if job.angle else None
+		return Job(x, y, angle=angle, relative=False)
+	def _ConvertTranslateToRelative(self, job):
+		angle = self.Robot.Position.Angle
+		x = job.translate * math.sin(angle)
+		y = job.translate * math.cos(angle)
+		return Job(x,y, angle=0, relative=True)
 	def Run(self): # Return True if Job is in progress, otherwise return False (nothing to do)
 		# Feting next in queue
 		if not self.IsRunning:  # if job isn't running
 			if not len(self.Queue): return False # if there's no next in queue, return False
 			self.IsRunning = self.Queue.pop(0) # otherwise, fetch
+		# Conversion from special to absolute
+		if self.IsRunning.translate: self.IsRunning = self._ConvertTranslateToRelative(self.IsRunning)
+		if self.IsRunning.relative: self.IsRunning = self._ConvertRelativeToAbsolute(self.IsRunning)
 		# References - original names too long
 		posx = self.Robot.Position.X
 		posy = self.Robot.Position.Y
@@ -108,4 +135,4 @@ class AstableInvention(RoombaModel):
 		#response = self.CvAnchor.Communication.PopResult()
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
 		# slam i guess, find next objective (Job)
-		self.Velocity.MoveForward()
+		#self.Velocity.MoveForward()
