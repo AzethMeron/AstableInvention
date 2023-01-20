@@ -3,6 +3,7 @@
 from . import Tools
 from .ModelMiddleLayer import IRReading, Bumper, Odometry, Position, Velocity, RoombaModel
 from .CvLib import CvAnchor
+from . import Parameters
 
 # python builtins
 import math
@@ -12,6 +13,7 @@ import math
 # I might have forgot it requires double underscore to make "private" attribute
 
 class Job: # Composite, just to make JobEngine code more readable
+	# Don't use consturctor. Use Job.Rotate Job.Translate Job.Absolute Job.Relative
 	def __init__(self, x, y, angle = None, relative = False, distance = None):
 		self.x = x
 		self.y = y
@@ -20,11 +22,9 @@ class Job: # Composite, just to make JobEngine code more readable
 		self.relative = relative
 		self.translate = distance # This one overrides every other
 	def Rotate(angle):
-		return Job(0, 0, angle, True)
+		return Job(0, 0, angle, relative=True, distance=None)
 	def Translate(distance):
-		r = Job(0,0)
-		r.translate = abs(distance)
-		return r
+		return Job(0, 0, None, relative=False, distance=abs(distance))
 	def Absolute(x, y, angle = None):
 		return Job(x,y,angle, relative=False, distance=None)
 	def Relative(x,y, angle = None):
@@ -43,12 +43,12 @@ class JobEngine:
 		x = self.Robot.Position.X + job.x
 		y = self.Robot.Position.Y + job.y
 		angle = (self.Robot.Position.Angle + job.angle) if job.angle else None
-		return Job(x, y, angle=angle, relative=False)
+		return Job.Absolute(x,y,angle)
 	def _ConvertTranslateToRelative(self, job):
 		angle = self.Robot.Position.Angle
 		x = job.translate * math.sin(angle)
 		y = job.translate * math.cos(angle)
-		return Job(x,y, angle=0, relative=True)
+		return Job.Relative(x,y,None)
 	def Run(self): # Return True if Job is in progress, otherwise return False (nothing to do)
 		# Feting next in queue
 		if not self.IsRunning:  # if job isn't running
@@ -81,7 +81,7 @@ class JobEngine:
 				# Translation
 				self.Robot.Velocity.MoveForward( self.Robot.Velocity.DecideLinearSpeed(distance) )
 			# Special case - robot moves too far, so it needs to moonwalk a bit
-			elif Tools.Compare(math.pi - abs(angle_to_rotate), 0, 0, Tools.DegToRad(15)) and Tools.Compare(distance, 0, 10*rt, 10*at): 
+			elif Tools.Compare(math.pi - abs(angle_to_rotate), 0, 0, Parameters.JobMoonwalkAngle) and Tools.Compare(distance, 0, 10*rt, 10*at): 
 				self.Robot.Velocity.MoveBackward( self.Robot.Velocity.DecideLinearSpeed(distance) )
 			else:
 				# Rotation
@@ -125,7 +125,7 @@ class AstableInvention(RoombaModel):
 	def __init__(self, loop_interval):
 		# call __init__() from RoombaModel
 		super().__init__("AstableInvention", loop_interval)
-		self.JobEngine = JobEngine(self, 0, 0.01)
+		self.JobEngine = JobEngine(self, 0, Parameters.AbsoluteTolerance)
 		self.CvAnchor = CvAnchor()
 	def Loop(self):
 		self.get_logger().info(f"\n{self}\n\n")
