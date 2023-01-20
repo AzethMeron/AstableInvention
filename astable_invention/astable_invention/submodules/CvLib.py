@@ -2,6 +2,8 @@
 import multiprocessing
 import cv2 as cv
 
+from . import Parameters
+
 class Camera:
 	def __init__(self):
 		self.cap = cv.VideoCapture(0)

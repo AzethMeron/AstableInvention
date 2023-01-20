@@ -11,6 +11,7 @@ from rclpy.qos import ReliabilityPolicy, QoSProfile
 
 # Astable Invention project
 from . import Tools
+from . import Parameters
 
 # python builtins
 import math
