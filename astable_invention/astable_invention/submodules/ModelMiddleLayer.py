@@ -121,30 +121,27 @@ class Velocity:
 		# Make sure to set some sane limits
 		self._vel_publisher = publisher
 	def Set(self, linear, angular):
-		max_linear = 2
-		max_angular = 1
-		linear = float(Tools.Constrain(linear, -max_linear, max_linear))
-		angular = float(Tools.Constrain(angular, -max_angular, max_angular))
+		linear = float(Tools.Constrain(linear, -Parameters.VelocityLinearLimit, Parameters.VelocityLinearLimit))
+		angular = float(Tools.Constrain(angular, -Parameters.VelocityAngularLimit, Parameters.VelocityAngularLimit))
 		self.Linear = linear
 		self.Angular = angular
 		command = RosTwist()
 		command.linear.x = linear; command.linear.y = 0.0; command.linear.z = 0.0
 		command.angular.x = 0.0; command.angular.y = 0.0; command.angular.z = angular
 		self._vel_publisher.publish(command)
-	def MoveForward(self, speed = 1): self.Set(speed,0)
-	def MoveBackward(self, speed = 1): self.Set(-speed,0)
-	def RotateLeft(self, speed = 1): self.Set(0,speed)
-	def RotateRight(self, speed = 1): self.Set(0,-speed)
+	def MoveForward(self, speed = Parameters.VelocityLinearDefault): self.Set(speed,0)
+	def MoveBackward(self, speed = Parameters.VelocityLinearDefault): self.Set(-speed,0)
+	def RotateLeft(self, speed = Parameters.VelocityAngularDefault): self.Set(0,speed)
+	def RotateRight(self, speed = Parameters.VelocityAngularDefault): self.Set(0,-speed)
 	def Stop(self): self.Set(0,0)
 	def Reset(self):
 		self.Set(self.Linear, self.Angular) 
 	def __str__(self):
 		return f"Velocity:\n	Linear: {self.Linear}\n	Angular: {self.Angular}"
-	
 	def DecideAngularSpeed(self, angle):
-		return angle + (0.1 if angle>0 else -0.1)
+		return Parameters.DecideVelocityAngularParamA*angle + (Parameters.DecideVelocityAngularParamB if angle >= 0 else -Parameters.DecideVelocityAngularParamB)
 	def DecideLinearSpeed(self, distance):
-		return 5*distance
+		return Parameters.DecideVelocityLinearParamA*distance + Parameters.DecideVelocityLinearParamA
 
 class RoombaModel(RosNode):
 	# Class used to separate AstableInvention (which is main part of the project, the thinking brain of the robot) from hardware (which will be managed by RoombaModel and classes like Velocity, Odometry)

@@ -7,6 +7,7 @@ from . import Parameters
 
 # python builtins
 import math
+import random
 
 # Note about code
 # If name of class/variable starts with _, it should be used ONLY within this class. Consider it private
@@ -24,11 +25,13 @@ class Job: # Composite, just to make JobEngine code more readable
 	def Rotate(angle):
 		return Job(0, 0, angle, relative=True, distance=None)
 	def Translate(distance):
-		return Job(0, 0, None, relative=False, distance=abs(distance))
+		return Job(0, 0, None, relative=False, distance=distance)
 	def Absolute(x, y, angle = None):
 		return Job(x,y,angle, relative=False, distance=None)
 	def Relative(x,y, angle = None):
 		return Job(x,y,angle, relative=True, distance=None)
+	def __str__(self):
+		return f"{self.x} {self.y} {self.angle} {self.relative} {self.translate}"
 		
 
 class JobEngine:
@@ -42,12 +45,12 @@ class JobEngine:
 	def _ConvertRelativeToAbsolute(self, job):
 		x = self.Robot.Position.X + job.x
 		y = self.Robot.Position.Y + job.y
-		angle = (self.Robot.Position.Angle + job.angle) if job.angle else None
+		angle = Tools.SimplifyAngle(self.Robot.Position.Angle + job.angle) if job.angle else None
 		return Job.Absolute(x,y,angle)
 	def _ConvertTranslateToRelative(self, job):
 		angle = self.Robot.Position.Angle
-		x = job.translate * math.sin(angle)
-		y = job.translate * math.cos(angle)
+		x = job.translate * math.cos(angle)
+		y = job.translate * math.sin(angle)
 		return Job.Relative(x,y,None)
 	def Run(self): # Return True if Job is in progress, otherwise return False (nothing to do)
 		# Feting next in queue
@@ -127,12 +130,17 @@ class AstableInvention(RoombaModel):
 		super().__init__("AstableInvention", loop_interval)
 		self.JobEngine = JobEngine(self, 0, Parameters.AbsoluteTolerance)
 		self.CvAnchor = CvAnchor()
+	def ObstacleAfterReflex(self, type):
+		self.JobEngine.Abort()
+		angle = Tools.DegToRad(random.randrange(45, 135) * random.choice([-1,1]))
+		self.JobEngine.Schedule(Job.Rotate(angle))
 	def Loop(self):
 		self.get_logger().info(f"\n{self}\n\n")
+		if self.JobEngine.IsRunning: print(self.JobEngine.IsRunning)
 		# Testing connection
 		#frame = self.CvAnchor.Camera.GetFrame()
 		#self.CvAnchor.Communication.PutFrame(frame)
 		#response = self.CvAnchor.Communication.PopResult()
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
 		# slam i guess, find next objective (Job)
-		#self.Velocity.MoveForward()
+		self.JobEngine.Schedule( Job.Translate( Parameters.Infinity ) )
