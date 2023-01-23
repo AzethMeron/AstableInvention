@@ -3,6 +3,7 @@ import rclpy
 # Astable Invention project
 from .submodules.ModelTopLayer import AstableInvention, Job
 from .submodules import Parameters
+from .submodules import Tools
 	
 # Commands (important)
 # source install/local_setup.bash
@@ -14,7 +15,6 @@ from .submodules import Parameters
 def main(args=None):
 	rclpy.init(args=args)
 	obj = AstableInvention(Parameters.MainTimerInterval)
-	obj.Position.Update(obj.Odometry.X, obj.Odometry.Y, obj.Odometry.Angle)
 	rclpy.spin(obj)
 	# Destroy the node explicitly
 	# (optional - otherwise it will be done automatically

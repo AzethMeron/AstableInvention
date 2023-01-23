@@ -34,9 +34,13 @@ def EulerFromQuaterion(x, y, z, w):
 	yaw_z = math.atan2(t3, t4)
 	return roll_x, pitch_y, yaw_z # in radians
 def PickShorterAngle(angle_to_rotate):
-	return angle_to_rotate if abs(angle_to_rotate) <= abs(2*math.pi - angle_to_rotate) else (2*math.pi - angle_to_rotate)
+	return SimplifyAngle(angle_to_rotate)
 def SimplifyAngle(angle):
-	modifier = 0
-	if angle <= -math.pi: modifier = 2*math.pi
-	if angle >= math.pi: modifier = -2*math.pi
-	return angle + modifier
+	while abs(angle) >= math.pi:
+		modifier = 0
+		if angle <= -math.pi: modifier = 2*math.pi
+		if angle >= math.pi: modifier = -2*math.pi
+		angle = angle + modifier
+	return angle
+def BelongsToRange(value, min, max):
+	return value >= min and value <= max

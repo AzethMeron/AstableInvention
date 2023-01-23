@@ -36,12 +36,12 @@ class Job: # Composite, just to make JobEngine code more readable
 
 class JobEngine:
 	# Note: ToleranceRelative is pretty useless in this case (actually it's undesired) but i've realized this only AFTER implementing it
-	def __init__(self, robot, ToleranceRelative, ToleranceAbsolute):
+	def __init__(self, robot, ToleranceAbsoluteXY, AbsoluteToleranceAngle):
 		self.IsRunning = None # None or Job obj
 		self.Queue = []
 		self.Robot = robot
-		self.ToleranceRelative = ToleranceRelative
-		self.ToleranceAbsolute = ToleranceAbsolute
+		self.ToleranceAbsoluteXY = ToleranceAbsoluteXY
+		self.AbsoluteToleranceAngle = AbsoluteToleranceAngle
 	def _ConvertRelativeToAbsolute(self, job):
 		x = self.Robot.Position.X + job.x
 		y = self.Robot.Position.Y + job.y
@@ -65,11 +65,11 @@ class JobEngine:
 		posy = self.Robot.Position.Y
 		angle = self.Robot.Position.Angle
 		job = self.IsRunning
-		rt = self.ToleranceRelative
-		at = self.ToleranceAbsolute
+		at = self.ToleranceAbsoluteXY
+		rt = self.AbsoluteToleranceAngle
 		# Check whether destination is reached
-		if Tools.Compare(posx, job.x, rt, at) and Tools.Compare(posy, job.y, rt, at):
-			if job.angle is None or Tools.Compare(angle, job.angle, rt, at):
+		if Tools.Compare(posx, job.x, 0, at) and Tools.Compare(posy, job.y, 0, at):
+			if job.angle is None or Tools.Compare(angle, job.angle, 0, rt):
 				self.Abort()
 				return True
 			# Final rotation
@@ -80,11 +80,11 @@ class JobEngine:
 			y = job.y - posy # Y axis change
 			angle_to_rotate = Tools.PickShorterAngle(math.atan2(y,x) - angle)
 			distance = math.sqrt( (x)**2 + (y)**2 )
-			if Tools.Compare(angle_to_rotate, 0, rt, at): # Perfect angle isn't important, robot can iteratively fix itself if error accumulate - atleast with reliable Odometry
+			if Tools.Compare(angle_to_rotate, 0, 0, rt): # Perfect angle isn't important, robot can iteratively fix itself if error accumulate - atleast with reliable Odometry
 				# Translation
 				self.Robot.Velocity.MoveForward( self.Robot.Velocity.DecideLinearSpeed(distance) )
 			# Special case - robot moves too far, so it needs to moonwalk a bit
-			elif Tools.Compare(math.pi - abs(angle_to_rotate), 0, 0, Parameters.JobMoonwalkAngle) and Tools.Compare(distance, 0, 10*rt, 10*at): 
+			elif Tools.Compare(math.pi - abs(angle_to_rotate), 0, 0, Parameters.JobMoonwalkAngle) and Tools.Compare(distance, 0, 0, 10*at): 
 				self.Robot.Velocity.MoveBackward( self.Robot.Velocity.DecideLinearSpeed(distance) )
 			else:
 				# Rotation
@@ -128,7 +128,7 @@ class AstableInvention(RoombaModel):
 	def __init__(self, loop_interval):
 		# call __init__() from RoombaModel
 		super().__init__("AstableInvention", loop_interval)
-		self.JobEngine = JobEngine(self, 0, Parameters.AbsoluteTolerance)
+		self.JobEngine = JobEngine(self, Parameters.AbsoluteToleranceXY, Parameters.AbsoluteToleranceAngle)
 		self.CvAnchor = CvAnchor()
 	def ObstacleAfterReflex(self, type):
 		self.JobEngine.Abort()
@@ -142,5 +142,5 @@ class AstableInvention(RoombaModel):
 		#self.CvAnchor.Communication.PutFrame(frame)
 		#response = self.CvAnchor.Communication.PopResult()
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
-		# slam i guess, find next objective (Job)
 		self.JobEngine.Schedule( Job.Translate( Parameters.Infinity ) )
+		# slam i guess, find next objective (Job)
