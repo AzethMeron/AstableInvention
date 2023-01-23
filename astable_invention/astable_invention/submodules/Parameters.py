@@ -7,6 +7,10 @@ AbsoluteToleranceXY = 0.01 # absolute tolerance for X,Y position of robot - too 
 AbsoluteToleranceAngle = 0.01 # absolute tolerance rotational position of robot - too small will make it never stop trying to reach any point
 JobMoonwalkAngle = Tools.DegToRad(15) # In radians
 
+# Gridmap parameters
+GridMapSize = 100
+GridMapResolution = 0.05 # should be greater than AbsoluteToleranceXY
+
 # Middle layer - there're many hardcoded values still, because this layer is actually supposed to be replaced
 VelocityLinearLimit = 2
 VelocityAngularLimit = 1

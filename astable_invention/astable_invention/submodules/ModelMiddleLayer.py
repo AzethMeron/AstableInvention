@@ -198,6 +198,8 @@ class RoombaModel(RosNode):
 	def _loop(self):
 		# Pre-loop action
 		self.PreLoopAction()
+		# Tick - which is the same as Loop, except it's (supposed to be) read-only
+		self.Tick()
 		# Loop itself
 		if not self._ReflexLoop(): self.Loop() # Call overriden method
 		# Post-loop action:
@@ -213,6 +215,7 @@ class RoombaModel(RosNode):
 	def ObstacleReached(self, type): pass # Function to be overriden by AstableInvention
 	def ObstacleAfterReflex(self, type): pass # Function to be overriden by AstableInvention
 	def Loop(self): pass # Function to be overriden by AstableInvention
+	def Tick(self): pass # Function to be overriden by AstableInvention
 	
 	###################################################################################################
 	

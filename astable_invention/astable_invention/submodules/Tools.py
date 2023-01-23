@@ -42,5 +42,3 @@ def SimplifyAngle(angle):
 		if angle >= math.pi: modifier = -2*math.pi
 		angle = angle + modifier
 	return angle
-def BelongsToRange(value, min, max):
-	return value >= min and value <= max
