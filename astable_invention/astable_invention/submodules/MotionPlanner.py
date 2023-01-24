@@ -94,7 +94,7 @@ class MotionPlanner:
 		resolution = Parameters.GridMapResolution
 		for pos in to_visit: 
 			(x,y) = pos
-			self.robot.JobEngine.Schedule( Job.Absolute(x,y) )
+			self.robot.JobEngine.Schedule( Job.Absolute(x+resolution/2,y+resolution/2) )
 		
 		
 			
