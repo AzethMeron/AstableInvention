@@ -59,6 +59,7 @@ class AstableInvention(RoombaModel):
 		self.MotionPlanner.Tick()
 	def Loop(self):
 		self.get_logger().info(f"\n{self}\n\n")
+		self.MotionPlanner.Loop()
 		if self.JobEngine.IsRunning: print(self.JobEngine.IsRunning)
 		# Testing connection
 		#frame = self.CvAnchor.Camera.GetFrame()

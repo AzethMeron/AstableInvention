@@ -9,7 +9,7 @@ JobMoonwalkAngle = Tools.DegToRad(15) # In radians
 
 # Gridmap parameters
 GridMapSize = 100
-GridMapResolution = 0.25 # should be greater than AbsoluteToleranceXY
+GridMapResolution = 0.15 # should be greater than AbsoluteToleranceXY
 
 # Middle layer - there're many hardcoded values still, because this layer is actually supposed to be replaced
 VelocityLinearLimit = 2
