@@ -11,7 +11,9 @@ class MotionPlanner:
 		self.map = GridMap(Parameters.GridMapSize, Parameters.GridMapResolution)
 		self.robot = robot
 		# initialise position at the center of the gridmap
+		resolution = Parameters.GridMapResolution
 		(x,y) = self.map.Center()
+		(x,y) = (x+resolution/2,y+resolution/2)
 		angle = self.robot.Position.Angle
 		self.robot.Position.Update(x,y,angle)
 	def ObstacleReached(self, type):
@@ -21,6 +23,8 @@ class MotionPlanner:
 		self.map.Set(pos, OBSTACLE)
 		self.robot.JobEngine.Clear()
 	def Tick(self):
+		pass
+	def Loop(self):
 		pos = (self.robot.Position.X, self.robot.Position.Y)
 		self.map.Set(pos, EMPTY)
 	def ObstacleAfterReflex(self, type):
@@ -40,7 +44,7 @@ class MotionPlanner:
 						path.append(curr)
 						curr = parent[curr]
 					for (x,y) in path[::-1]:
-						self.robot.JobEngine.Schedule( Job.Absolute(x,y) )
+						self.robot.JobEngine.Schedule( Job.Absolute(x+resolution/2,y+resolution/2) )
 					return None
 				neighbours = [[resolution,0], [0,resolution], [-resolution,0], [0,-resolution]] 
 				for (dpos, weight, manhattan) in weighted:
