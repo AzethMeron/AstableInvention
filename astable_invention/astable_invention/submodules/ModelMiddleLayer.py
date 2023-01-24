@@ -16,15 +16,17 @@ from . import Parameters
 # python builtins
 import math
 
+from std_msgs.msg import Int32
+
 # irobot create imports
-from irobot_create_msgs.msg import HazardDetectionVector
-from irobot_create_msgs.msg import IrIntensityVector
-from irobot_create_msgs.msg import IrOpcode
+#from irobot_create_msgs.msg import HazardDetectionVector
+#from irobot_create_msgs.msg import IrIntensityVector
+#from irobot_create_msgs.msg import IrOpcode
 
 # Note about code
 # If name of class/variable starts with _, it should be used ONLY within this class. Consider it private
 # I might have forgot it requires double underscore to make "private" attribute
-
+"""
 class IRReading:
 	def __init__(self):
 		self.front_center_left = None
@@ -53,7 +55,8 @@ class IRReading:
 		pass # Nothing
 	def __str__(self):
 		return f"Infrared readings:\n	front_center_left = {self.front_center_left}\n	front_center_right = {self.front_center_right}\n	front_left = {self.front_left}\n	front_right = {self.front_right}\n	left = {self.left}\n	right = {self.right}\n	side_left = {self.side_left}\n	max = {self._max}"			
-		
+"""		
+"""
 class Bumper:
 	def __init__(self):
 		self.State = None
@@ -69,7 +72,18 @@ class Bumper:
 		self.State = None
 	def __str__(self):
 		return f"Bumper: {self.State}"
-
+"""
+class Bumper:
+	def __init__(self):
+		self.State = None
+	def ParseTopicMsg(self, msg):
+		self.State = msg.data
+		if self.State == 0: self.State = None
+	def Reset(self):
+		pass #self.State = None
+	def __str__(self):
+		return f"Bumper: {self.State}"
+	
 class Odometry:
 	def __init__(self):
 		self.X = 0.0; self.Y = 0.0#; self.PosZ = 0.0
@@ -152,13 +166,14 @@ class RoombaModel(RosNode):
 	def __init__(self, name, loop_interval):
 		super().__init__(name)
 		# ROS, subscribers and publishers
-		self._ir_intensity_subscriber = self.create_subscription( IrIntensityVector, 'ir_intensity', self._IrIntensityCallback, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
+		#self._ir_intensity_subscriber = self.create_subscription( IrIntensityVector, 'ir_intensity', self._IrIntensityCallback, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
 		self._odom_subscriber = self.create_subscription( RosOdometry, 'odom', self._OdomCallback, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
-		self._hazard_subscriber = self.create_subscription( HazardDetectionVector, 'hazard_detection', self._HazardDetection, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
+		#elf._hazard_subscriber = self.create_subscription( HazardDetectionVector, 'hazard_detection', self._HazardDetection, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
+		self._bumper_subscriber = self.create_subscription( Int32, 'bumper', self._HazardDetection, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
 		self._vel_publisher = self.create_publisher( RosTwist, 'cmd_vel', 10 )
 		self._timer = self.create_timer( loop_interval, self._loop )
 		# creation & initialisation of attributes
-		self.IR = IRReading()
+		#self.IR = IRReading()
 		self.Odometry = Odometry()
 		self.Position = Position()
 		self.Bumper = Bumper()
@@ -169,7 +184,7 @@ class RoombaModel(RosNode):
 		self._tmp = None
 	
 	def _IrIntensityCallback(self, msg):
-		self.IR.ParseTopicMsg(msg)
+		pass #self.IR.ParseTopicMsg(msg)
 		
 	def _OdomCallback(self, msg):
 		self.Odometry.ParseTopicMsg(msg)
@@ -190,7 +205,7 @@ class RoombaModel(RosNode):
 		self.Odometry.Reset()
 		self.Velocity.Reset()
 		self.Bumper.Reset()
-		self.IR.Reset()
+		#self.IR.Reset()
 		self.Position.Reset()
 	
 	###################################################################################################
@@ -205,7 +220,7 @@ class RoombaModel(RosNode):
 		# Post-loop action:
 		self.PostLoopAction() # Must be called LAST in loop
 	def __str__(self):
-		output =  f"{str(self.Odometry)}\n{str(self.Position)}\n{str(self.Velocity)}\n{str(self.Bumper)}\n{str(self.IR)}"
+		output =  f"{str(self.Odometry)}\n{str(self.Position)}\n{str(self.Velocity)}\n{str(self.Bumper)}"
 		if self._tmp: output = f"{output}\n{self._tmp}" #append debug info, if any
 		return output
 	

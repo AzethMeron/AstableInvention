@@ -2,7 +2,7 @@
 # Astable Invention project
 from . import Tools
 from . import Parameters
-from .ModelMiddleLayer import IRReading, Bumper, Odometry, Position, Velocity, RoombaModel
+from .ModelMiddleLayer import Bumper, Odometry, Position, Velocity, RoombaModel
 from .CvLib import CvAnchor
 from .JobEngine import Job, JobEngine
 from .MotionPlanner import MotionPlanner

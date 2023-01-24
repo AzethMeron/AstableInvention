@@ -87,6 +87,7 @@ class MotionPlanner:
 		return []
 	def Run(self):
 		to_visit = self.PathToNearestUnexplored()
+		resolution = Parameters.GridMapResolution
 		for pos in to_visit: 
 			(x,y) = pos
 			self.robot.JobEngine.Schedule( Job.Absolute(x,y) )
