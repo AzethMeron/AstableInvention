@@ -85,3 +85,6 @@ class JobEngine:
 	def Abort(self):
 		self.IsRunning = None
 		self.Robot.Velocity.Stop()
+	def Clear(self):
+		self.Queue = []
+		self.Abort()

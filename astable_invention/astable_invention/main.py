@@ -15,6 +15,7 @@ from .submodules import Tools
 def main(args=None):
 	rclpy.init(args=args)
 	obj = AstableInvention(Parameters.MainTimerInterval)
+	obj.JobEngine.Schedule(Job.Relative(-1,1))
 	rclpy.spin(obj)
 	# Destroy the node explicitly
 	# (optional - otherwise it will be done automatically

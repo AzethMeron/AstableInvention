@@ -47,14 +47,16 @@ class AstableInvention(RoombaModel):
 		super().__init__("AstableInvention", loop_interval)
 		self.JobEngine = JobEngine(self, Parameters.AbsoluteToleranceXY, Parameters.AbsoluteToleranceAngle)
 		self.CvAnchor = CvAnchor()
+		self.MotionPlanner = MotionPlanner(self)
 	def ObstacleReached(self, type):
-		pass
-		#self.MotionPlanner.ObstacleReached(type)
+		self.MotionPlanner.ObstacleReached(type)
 	def ObstacleAfterReflex(self, type):
-		self.JobEngine.Abort()
-		angle = Tools.DegToRad(random.randrange(45, 135) * random.choice([-1,1]))
-		self.JobEngine.Schedule(Job.Rotate(angle))
-		#self.MotionPlanner.ObstacleAfterReflex(type)
+		self.MotionPlanner.ObstacleAfterReflex(type)
+		#self.JobEngine.Abort()
+		#angle = Tools.DegToRad(random.randrange(45, 135) * random.choice([-1,1]))
+		#self.JobEngine.Schedule(Job.Rotate(angle))
+	def Tick(self):
+		self.MotionPlanner.Tick()
 	def Loop(self):
 		self.get_logger().info(f"\n{self}\n\n")
 		if self.JobEngine.IsRunning: print(self.JobEngine.IsRunning)
@@ -63,5 +65,6 @@ class AstableInvention(RoombaModel):
 		#self.CvAnchor.Communication.PutFrame(frame)
 		#response = self.CvAnchor.Communication.PopResult()
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
-		self.JobEngine.Schedule( Job.Translate( Parameters.Infinity ) )
+		self.MotionPlanner.Run()
+		#self.JobEngine.Schedule( Job.Translate( Parameters.Infinity ) )
 		# slam i guess, find next objective (Job)
