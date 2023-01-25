@@ -28,11 +28,17 @@ class GridMap:
 	def Get(self, pos):
 		pos = self.Discretize(pos)
 		(x, y) = pos
-		return self.grid[x,y]
+		try:
+			return self.grid[x,y]
+		except:
+			return OBSTACLE
 	def Set(self, pos, value):
 		pos = self.Discretize(pos)
 		(x, y) = pos
-		self.grid[x,y] = value
+		try:
+			self.grid[x,y] = value
+		except:
+			pass
 	def Center(self):
 		x = self.params[0]/2
 		y = self.params[0]/2
