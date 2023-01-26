@@ -1,4 +1,26 @@
 
+Installation
+---
+
+Code created for this project consists of three ROS packages: astableinvention, which is our code, and two external packages: create_3sim and aw-robomaker-small-house-world. Note that the model of iRobot create 3 was slightly modified by us, to disable bump reflexes.
+
+Commands to create workspace, download repository, build and run the project:
+```[bash]
+source /opt/ros/galactic/setup.bash
+mkdir -p ~/ros2_ws/src
+cd ~/ros2_ws/src
+git clone https://github.com/AzethMeron/AstableInvention.git
+cd ..
+rosdep install -i --from-path src --rosdistro galactic -y
+colcon build
+source install/local_setup.bash
+```
+
+To run the simulation: ```ros2 launch irobot_create_gazebo_bringup create3_gazebo_aws_small.launch.py```
+To run astableinvention node: ```ros2 run astable_invention main```
+
+Note: branch master is for simulation, robot for real robot (supports topics programmed by us in the microcontroller) As of now, middle layer isn’t fully implemented in robot branch, because microcontroller doesn’t provide necessary data yet.
+
 Model and simulation platform
 ---
 
@@ -43,21 +65,48 @@ All numeric values in project are either normalised (like in IRReading class) or
 Reflexes, protection from hazards
 ---
 
-Reflexes are features of middle layer. For now, there's only bump reflex, but the codebase for other types is there, it's pretty flexible.
+Reflexes are features of the middle layer. For now, there's only bump reflex, but the codebase for other types is there, it's pretty flexible.
 
-Reflex is triggered when any hazard is detected (for example, when robots hits obstacle with a bumper) Reflex instantly stops the robot, then calls top layer function to let programming know that collision occured (so I can take it into consideration in SLAM) but it also overrides top layer control flow - **top layer can't control robot during reflex**,
+Reflex is triggered when any hazard is detected (for example, when robots hits obstacle with a bumper) Reflex instantly stops the robot, then calls top layer function ObstacleReached to let programming know that collision occurred (so it can be taken into consideration in SLAM) but it also overrides top layer control flow - top layer can't control robot during reflex,
 
-Behaviour of robot during reflex is defined by function ObstacleReflexMoonwalk, which has access to all readings from robot so can take proper action to safely get away from hazard. For now, it only moves backward, but more advanced algorithm can be implemented.
+Behaviour of the robot during reflex is defined by function ObstacleReflexMoonwalk, which has access to all readings from the robot so it can take proper action to safely get away from the hazard. For now, it only moves backward, but more advanced algorithms can be implemented.
+
+After reflex behaviour safely removes the robot from proximity of hazard (obstacle) top layer function ObstacleAfterReflex is called.
 
 https://user-images.githubusercontent.com/41695668/212758125-14d32c59-cfb0-4e05-82e4-bdd48946b281.mp4
 
-Top layer of abstraction
+Movement to given point: Job and JobEngine
 ---
 
-Classes in top level of abstraction don't use hardcoded numerical values and use only pure-pythonic code, as well as tools supplied by middle layer. It should work as good in simulator as on physical robot, with only fine-tuning of some parameters.
+Python classes Job and JobEngine, operating in the top layer, implement the rotate-translate-rotate algorithm for robotic movement. Essentially, the robot is rotated to face the destination point, then it moves forward until it reaches the destination point, finally it’s rotated again to have the desired rotation.
 
-**JobEngine** and Job classes are used to move robot to specified position, with specified final angle. It uses rotate-translate-rotate algorithm and takes absolute tolerance as parameter (it's pretty much impossible to reach position perfectly, even in simulator) However JobEngine doesn't deal with obstacles in the way, it's task for algorithm above.
+Job class stores information about type and end-goal of movement, which is then executed by JobEngine, which also allows creation of a queue of Jobs. 
+
+Jobs can be created with following syntax:  
+  Job.Absolute(x,y,angle) - end position is given in absolute coordinates  
+  Job.Relative(x,y,angle) - end position is given in relative coordinates  
+  Job.Rotate(angle) - rotate by given angle  
+  Job.Translate(distance) - move forward by given distance (in respect to current rotation)  
+JobEngine works only with absolute coordinates, so all other syntaxes are eventually converted into absolute ones. Angle usually can be omitted (set to None) which allows robot to finish in any rotation it had once reaching given x and y.
+
+Perfect localization given to Job may never be reached because of many reasons, chief among them is frequency rate of code execution - code executing the movement is called with every tick of ROS timer, which is set to small yet significant value. To solve this problem, we’ve introduced the parameter AbsoluteTolerance - which stands for maximum error that can appear on coordinates x y and angle.
 
 https://user-images.githubusercontent.com/41695668/212758173-e14ef0d2-12c0-41d2-980b-7d5353ef684d.mp4
 
-**AstableInvention** is in highest level of abstraction, it inherits RoombaModel and utilitizes middle layer + JobEngine for SLAM (not implemented yet)
+Autonomous mapping
+---
+
+We’ve implemented rudimentary algorithms for mapping, exploration, and pathfinding using only odometry data and (binary) bumper data. It’s not a SLAM, but at least it does work.
+
+We couldn’t use any plug & play package for SLAM, nor exactly follow any article or tutorial for it, because pretty much every one we’ve found required a LIDAR or equivalent sensor, which our robot doesn’t have. Seems like light intensity sensors are not enough.
+
+First challenge to overcome was: how to represent a map in the program. I’ve decided to use a simple grid map with two parameters: SIZE and RESOLUTION.
+
+Grid map is created for 2D coordinate system. Variables X,Y are continuous in nature and require discretization to be useful. The main idea of the grid map is: divide the area of SIZE x SIZE into squares of size RESOLUTION x RESOLUTION. Then, by using discretization, we can find within which of those squares our robot is, based on values of X,Y and given resolution. Robot at the start is placed at the centre (SIZE/2, SIZE/2) to not get out of the boundaries of the grid map.
+
+Value within the grid map may represent what is within a given square: empty area through which the robot may pass, obstacle, or unexplored area. 
+
+In our implementation, robot is using Breadth First Search algorithm to find the nearest unexplored square and schedules movement to it using JobEngine, moving by a single neighbouring square at a time. Every program cycle when the robot isn’t in any danger, the current square is marked as empty. Once a robot hits an obstacle, the corresponding square is marked as an obstacle.
+Like we’ve mentioned, this algorithm is very rudimentary. It uses only binary value of bumper reading (either hit an obstacle or not) and trusts odometry completely, which accumulates error over time that isn’t compensated for in any way. Furthermore, JobEngine doesn’t support continuous movement, so after reaching any square in a grid it stops, then moves to the next destination. In short, there’re many ways to improve  and optimise our algorithm, but it does work.
+
+https://user-images.githubusercontent.com/41695668/214738519-8f1eee77-43a7-4978-b476-01a39e9437f9.mp4
