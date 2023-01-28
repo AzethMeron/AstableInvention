@@ -8,7 +8,7 @@ AbsoluteToleranceAngle = 0.01 # absolute tolerance rotational position of robot 
 JobMoonwalkAngle = Tools.DegToRad(15) # In radians
 
 # Gridmap parameters
-GridMapSize = 1
+GridMapSize = 100
 GridMapResolution = 0.15 # should be greater than AbsoluteToleranceXY
 
 # Threshold for IR readings (mapping)
