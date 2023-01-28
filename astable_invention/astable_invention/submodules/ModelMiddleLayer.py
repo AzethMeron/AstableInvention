@@ -18,11 +18,6 @@ import math
 
 from std_msgs.msg import Int32
 
-# irobot create imports
-#from irobot_create_msgs.msg import HazardDetectionVector
-#from irobot_create_msgs.msg import IrIntensityVector
-#from irobot_create_msgs.msg import IrOpcode
-
 # Note about code
 # If name of class/variable starts with _, it should be used ONLY within this class. Consider it private
 # I might have forgot it requires double underscore to make "private" attribute
