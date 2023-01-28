@@ -11,13 +11,16 @@ JobMoonwalkAngle = Tools.DegToRad(15) # In radians
 GridMapSize = 100
 GridMapResolution = 0.15 # should be greater than AbsoluteToleranceXY
 
+# Threshold for IR readings (mapping)
+MappingObstacleIRThreshold = 30.0
+
 # Middle layer - there're many hardcoded values still, because this layer is actually supposed to be replaced
-VelocityLinearLimit = 2
+VelocityLinearLimit = 1
 VelocityAngularLimit = 1
 VelocityLinearDefault = 1
 VelocityAngularDefault = 1
 # linear velocity =  a * distance + b
-DecideVelocityLinearParamA = 5
+DecideVelocityLinearParamA = 2
 DecideVelocityLinearParamB = 0
 # angular velocity = a * angle +- b (sign depends on the angle, if it's negative then it's -b)
 DecideVelocityAngularParamA = 1
