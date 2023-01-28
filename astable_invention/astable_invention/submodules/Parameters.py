@@ -12,7 +12,7 @@ GridMapSize = 100
 GridMapResolution = 0.15 # should be greater than AbsoluteToleranceXY
 
 # Middle layer - there're many hardcoded values still, because this layer is actually supposed to be replaced
-VelocityLinearLimit = 2
+VelocityLinearLimit = 1
 VelocityAngularLimit = 1
 VelocityLinearDefault = 1
 VelocityAngularDefault = 1

@@ -18,6 +18,10 @@ class GridMap:
 		(size, resolution) = self.params
 		(x, y) = pos
 		return ( round(x / resolution), round(y / resolution) )
+	def DeDiscretize(self, discrete_pos):
+		(size, resolution) = self.params
+		(x, y) = discrete_pos
+		return (x * resolution, y * resolution)
 	def Facing(self, angle):
 		# return relative (x,y) which shows which direction is being faced
 		(size, resolution) = self.params
@@ -25,6 +29,9 @@ class GridMap:
 		if Tools.Compare(abs(angle), math.pi, 0, Tools.DegToRad(46)): return (-resolution, 0)
 		if Tools.Compare(angle, -math.pi / 2, 0, Tools.DegToRad(46)): return (0,-resolution)
 		if Tools.Compare(angle, 0, 0, Tools.DegToRad(46)): return (resolution,0)
+	def GetNeighbours(self):
+		(size, resolution) = self.params
+		return [(-resolution,0), (0,resolution), (resolution,0), (0,-resolution)] 
 	def Get(self, pos):
 		pos = self.Discretize(pos)
 		(x, y) = pos
@@ -40,31 +47,16 @@ class GridMap:
 		except:
 			pass
 	def Center(self):
-		x = self.params[0]/2
-		y = self.params[0]/2
-		return (x,y)
-	def __str__(self):
-		# Not the best code bui it's only for debugging so... ANYWAY
 		(size, resolution) = self.params
-		lines = []
-		for ix in range(size):
-			line = ""
-			for iy in range(size):
-				pixel = UNEXPLORED
-				for dx in range(math.floor(1/resolution)):
-					for dy in range(math.floor(1/resolution)):
-						try:
-							pos = (ix/resolution + dx, iy/resolution + dy)
-							val = self.Get(pos)
-							if pixel < val: pixel = val
-						except:
-							pass
-				if pixel == UNEXPLORED: line = f"{line} "
-				if pixel == EMPTY: line = f"{line}o"
-				if pixel == OBSTACLE: line = f"{line}X"
-			lines.append(line)
-		lines = lines[::-1]
-		return "\n".join(lines)
+		x = size/2
+		y = size/2
+		return (x,y)
+	def Centrify(self, pos):
+		(size, resolution) = self.params
+		(x, y) = self.Discretize(pos)
+		(x, y) = self.DeDiscretize((x,y))
+		(x, y) = (x + resolution / 2, y + resolution / 2)
+		return (x,y)
 	def ManhattanDistance(pos1, pos2):
 		(x1, y1) = pos1
 		(x2, y2) = pos2
