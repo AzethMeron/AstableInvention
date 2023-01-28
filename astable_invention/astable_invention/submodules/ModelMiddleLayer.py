@@ -27,24 +27,23 @@ from irobot_create_msgs.msg import IrOpcode
 
 class IRReading:
 	def __init__(self):
-		self.front_center_left = None
-		self.front_center_right = None
-		self.front_left = None
-		self.front_right = None
-		self.left = None
-		self.right = None
-		self.side_left = None
-		self._max = 0 # TEMPORARY
+		self.front_center = 0
+		self.front_left = 0
+		self.front_right = 0
+		self.left = 0
+		self.right = 0
+		self.side_right = 0 # !!! irobot create has side sensor on the other side !!! so for simulations, it's side_left
 	def ParseTopicMsg(self, msg):
 		for reading in msg.readings:
-			self._max = max(self._max, reading.value)
-			if reading.header.frame_id == "ir_intensity_front_center_left": self.front_center_left = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_front_center_right": self.front_center_right = IRReading._SimplifyIRReading(reading.value)
+			if reading.header.frame_id == "ir_intensity_front_center_left": self.front_center = IRReading._SimplifyIRReading(reading.value)
+			elif reading.header.frame_id == "ir_intensity_front_center_right": 
+				if IRReading._SimplifyIRReading(reading.value) > self.front_center:
+					self.front_center = IRReading._SimplifyIRReading(reading.value)
 			elif reading.header.frame_id == "ir_intensity_front_left": self.front_left = IRReading._SimplifyIRReading(reading.value)
 			elif reading.header.frame_id == "ir_intensity_front_right": self.front_right = IRReading._SimplifyIRReading(reading.value)
 			elif reading.header.frame_id == "ir_intensity_left": self.left = IRReading._SimplifyIRReading(reading.value)
 			elif reading.header.frame_id == "ir_intensity_right": self.right = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_side_left": self.side_left = IRReading._SimplifyIRReading(reading.value)
+			elif reading.header.frame_id == "ir_intensity_side_left": self.side_right = IRReading._SimplifyIRReading(reading.value)
 	def _SimplifyIRReading(value):
 		min_value = 15
 		max_value = 1800 # Those values need to be determined! This is placeholder!
@@ -52,7 +51,7 @@ class IRReading:
 	def Reset(self):
 		pass # Nothing
 	def __str__(self):
-		return f"Infrared readings:\n	front_center_left = {self.front_center_left}\n	front_center_right = {self.front_center_right}\n	front_left = {self.front_left}\n	front_right = {self.front_right}\n	left = {self.left}\n	right = {self.right}\n	side_left = {self.side_left}\n	max = {self._max}"			
+		return f"Infrared readings:\n	front_center = {self.front_center}\n	front_right = {self.front_right}\n	front_left = {self.front_left}\n	left = {self.left}\n	right = {self.right}\n	side_right = {self.side_right}"			
 		
 class Bumper:
 	def __init__(self):

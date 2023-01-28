@@ -12,8 +12,12 @@ class MotionPlanner:
 		self.map = None
 		self.robot = robot
 		self.Reset()
+		
 	def GetPos(self):
 		return (self.robot.Position.X, self.robot.Position.Y, self.robot.Position.Angle)
+		
+	#########################################################################################3
+		
 	def Reset(self):
 		self.map = GridMap(Parameters.GridMapSize, Parameters.GridMapResolution)
 		# initialise position at the center of the gridmap
@@ -21,21 +25,28 @@ class MotionPlanner:
 		(x,y) = self.map.Centrify(self.map.Center())
 		angle = self.robot.Position.Angle
 		self.robot.Position.Update(x,y,angle)
+		
 	def ObstacleReached(self, type):
 		if type == "bump":
 			(x,y,angle) = self.GetPos()
 			(dx,dy) = self.map.Facing(angle)
-			self.map.Set((x, y), OBSTACLE) # Set current as obstacle
+			#self.map.Set((x, y), OBSTACLE) # Set current as obstacle
 			self.map.Set((x+dx, y+dy), OBSTACLE) # Set facing as obstacle
 			self.robot.JobEngine.Clear()
+			
 	def ObstacleAfterReflex(self, type):
 		pass # Here we do nothing
+		
 	def Tick(self):
-		pass # Here we do nothing
+		(x,y,angle) = self.GetPos()
+		self.MapIRReading(x,y,angle)
+		
 	def Loop(self):
 		(x,y,angle) = self.GetPos()
 		self.map.Set((x,y), EMPTY)
-		(dx,dy) = self.map.Facing(angle)
+	
+	#########################################################################################
+	
 	def ParseNeighbours(self, pos, facing, neighbours):
 		output = []
 		(px,py) = pos
@@ -49,6 +60,7 @@ class MotionPlanner:
 			output.append( ((x,y), weight) )
 		output = sorted(output, key=lambda x: -x[1])
 		return output
+		
 	def PathToNearestUnexplored(self):
 		(x,y,angle) = self.GetPos()
 		facing = self.map.Facing(angle)
@@ -67,6 +79,7 @@ class MotionPlanner:
 				parent[(ax,ay)] = (cx, cy)
 				queue.append( (ax,ay) )
 		return []
+		
 	def GetPath(self, pos, parent):
 		path = []
 		curr = pos
@@ -74,16 +87,45 @@ class MotionPlanner:
 			path.append(curr)
 			curr = parent[curr]
 		return path[::-1]
+	
 	def Run(self):
-		print("Running motion planner")
 		to_visit = self.PathToNearestUnexplored()
-		print("Path found")
 		for pos in to_visit:
 			print(f"{self.GetPos()} -> {pos}")
 			(x,y) = pos
 			(x,y) = self.map.Centrify((x,y))
 			self.robot.JobEngine.Schedule( Job.Absolute(x,y) )
 		
+	#########################################################################################
+	
+	def CheckIRValue(reading):
+		return (reading > Parameters.MappingObstacleIRThreshold) if reading else False
+	
+	def ProcessIRValue(self, x, y, angle, rotation):
+		(dx, dy) = self.map.FacingExtended(angle + rotation)
+		self.map.Set((x+dx,y+dy), OBSTACLE)
+		
+	def MapIRReading(self, x, y, angle):
+		ir = self.robot.IR
+		if MotionPlanner.CheckIRValue(ir.front_center):
+			rotation = Tools.DegToRad(0)
+			self.ProcessIRValue(x, y, angle, rotation)
+		if MotionPlanner.CheckIRValue(ir.front_left):
+			rotation = Tools.DegToRad(15)
+			self.ProcessIRValue(x, y, angle, rotation)
+		if MotionPlanner.CheckIRValue(ir.front_right):
+			rotation = Tools.DegToRad(-15)
+			self.ProcessIRValue(x, y, angle, rotation)
+		if MotionPlanner.CheckIRValue(ir.left):
+			rotation = Tools.DegToRad(30)
+			self.ProcessIRValue(x, y, angle, rotation)
+		if MotionPlanner.CheckIRValue(ir.right):
+			rotation = Tools.DegToRad(-30)
+			self.ProcessIRValue(x, y, angle, rotation)
+		if MotionPlanner.CheckIRValue(ir.side_right):
+			#rotation = Tools.DegToRad(-60) # real robot
+			rotation = Tools.DegToRad(60)
+			self.ProcessIRValue(x, y, angle, rotation)
 		
 			
 		

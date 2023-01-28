@@ -30,13 +30,12 @@ class AstableInvention(RoombaModel):
 	#	self.Position.X, self.Position.Y, self.Position.Angle
 	#	self.Update()
 	# self.IR
-	# 	self.IR.front_center_left
-	#	self.IR.front_center_right
+	# 	self.IR.front_center
 	#	self.IR.front_left
 	#	self.IR.front_right
 	#	self.IR.left
 	#	self.IR.right
-	#	self.IR.side_left
+	#	self.IR.side_right
 	# 	IR has inverse values, f.e. 15 if it sees nothing and around 1800 if it's close
 	# self.ObstacleReached(type) - function called once, IMMEDIATELY when obstacle is detected (bumper, more might be added)
 	# self.ObstacleAfterReflex(type) - function called once, after finishing of reflex behaviour
@@ -67,5 +66,6 @@ class AstableInvention(RoombaModel):
 		#response = self.CvAnchor.Communication.PopResult()
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
 		self.MotionPlanner.Run()
+		print(self.MotionPlanner.map)
 		#self.JobEngine.Schedule( Job.Translate( Parameters.Infinity ) )
 		# slam i guess, find next objective (Job)
