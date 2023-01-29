@@ -64,7 +64,8 @@ class GridMap:
 			if value > inv_map[self.representation[x,y]]:
 				self.representation[x,y] = char_map[value]
 		except Exception as e:
-			print(traceback.format_exc())
+			pass
+			#print(traceback.format_exc())
 	def Center(self):
 		(size, resolution) = self.params
 		x = size/2
@@ -79,7 +80,7 @@ class GridMap:
 	def __str__(self):
 		lines = []
 		for line in self.representation:
-			lines.append(''.join(line))
+			lines.append(' '.join(line))
 		lines = lines[::-1]
 		return "\n".join(lines)
 	def ManhattanDistance(pos1, pos2):
