@@ -26,5 +26,8 @@ DecideVelocityLinearParamB = 0
 DecideVelocityAngularParamA = 1
 DecideVelocityAngularParamB = 0.1
 
+# AI/CV
+CvConfidenceThreshold = 0.6
+
 # Others
 Infinity = 100000 

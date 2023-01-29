@@ -3,6 +3,7 @@ import multiprocessing
 import cv2 as cv
 
 from . import Parameters
+from .cvmain import main
 
 class Camera:
 	def __init__(self):
@@ -38,12 +39,6 @@ class Communication:
 		return self.__input_queue.get()
 	def PutFrame(self, frame):
 		Communication._PutSingle(self.__input_queue, frame)
-
-# Temporary
-def main(communication):
-	while True:
-		obj = communication.PopFrame()
-		communication.PutResult(obj)
 
 class CvAnchor:
 	def __init__(self):

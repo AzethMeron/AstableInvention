@@ -55,6 +55,10 @@ class AstableInvention(RoombaModel):
 		self.MotionPlanner.Tick()
 	def Loop(self):
 		self.get_logger().info(f"\n{self}\n\n")
+		# AICV part
+		frame = self.CvAnchor.Camera.GetFrame()
+		self.CvAnchor.Communication.PutFrame(frame)
+		# Motion controls
 		self.MotionPlanner.Loop()
 		if self.JobEngine.IsRunning: print(self.JobEngine.IsRunning)
 		if self.JobEngine.Run(): return None # Run the job. If there's a job in execution, break execution of loop. Otherwise, go further
