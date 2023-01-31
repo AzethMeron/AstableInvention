@@ -82,11 +82,12 @@ class Odometry:
 	def ParseTopicMsg(self, msg):
 		self.X = msg.pose.pose.position.x
 		self.Y = msg.pose.pose.position.y
-		x = msg.pose.pose.orientation.x
-		y = msg.pose.pose.orientation.y
-		z = msg.pose.pose.orientation.z
-		w = msg.pose.pose.orientation.w
-		self.Angle = Tools.EulerFromQuaterion(x,y,z,w)[2]
+		#x = msg.pose.pose.orientation.x
+		#y = msg.pose.pose.orientation.y
+		#z = msg.pose.pose.orientation.z
+		#w = msg.pose.pose.orientation.w
+		#self.Angle = Tools.EulerFromQuaterion(x,y,z,w)[2]
+		self.Angle = msg.pose.pose.orientation.z
 	def Update(self):
 		self.dX = self.X - self._prevX
 		self.dY = self.Y - self._prevY
@@ -173,8 +174,8 @@ class RoombaModel(RosNode):
 		
 	def _HazardDetection(self, msg):
 		# Bumper
-		int32data = msg.data
 		self.Bumper.ParseTopicMsg(msg)
+		self.IR.ParseTopicMsg(msg)
 		self.TriggerHazard(self.Bumper.State, "bump")
 		# more will be there probably
 		
