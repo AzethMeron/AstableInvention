@@ -18,6 +18,14 @@ import math
 
 from std_msgs.msg import Int32
 
+def GetBits(value, id_min, bit_len):
+	mask = 0
+	for bit_num in range(id_min, id_min+bit_len):
+		mask = mask | (1 << bit_num)
+	value = value & mask
+	value = value >> id_min
+	return value
+
 # Note about code
 # If name of class/variable starts with _, it should be used ONLY within this class. Consider it private
 # I might have forgot it requires double underscore to make "private" attribute
@@ -29,21 +37,18 @@ class IRReading:
 		self.front_right = 0
 		self.left = 0
 		self.right = 0
-		self.side_right = 0 # !!! irobot create has side sensor on the other side !!! so for simulations, it's side_left
+		self.side_right = 0 
 	def ParseTopicMsg(self, msg):
-		for reading in msg.readings:
-			if reading.header.frame_id == "ir_intensity_front_center_left": self.front_center = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_front_center_right": 
-				if IRReading._SimplifyIRReading(reading.value) > self.front_center:
-					self.front_center = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_front_left": self.front_left = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_front_right": self.front_right = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_left": self.left = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_right": self.right = IRReading._SimplifyIRReading(reading.value)
-			elif reading.header.frame_id == "ir_intensity_side_left": self.side_right = IRReading._SimplifyIRReading(reading.value)
+		num = msg.data
+		self.front_center = GetBits(num, 0, 4)
+		self.front_left = GetBits(num, 4, 4)
+		self.front_right = GetBits(num, 8, 4)
+		self.left = GetBits(num, 12, 4)
+		self.right = GetBits(num, 16, 4)
+		self.side_right = GetBits(num, 20, 4)
 	def _SimplifyIRReading(value):
-		min_value = 15
-		max_value = 1800 # Those values need to be determined! This is placeholder!
+		min_value = 0
+		max_value = 15 
 		return  100.0 * (value - min_value) / (max_value - min_value) # Percentage, might be floating point
 	def Reset(self):
 		pass # Nothing
@@ -54,8 +59,13 @@ class Bumper:
 	def __init__(self):
 		self.State = None
 	def ParseTopicMsg(self, msg):
-		self.State = msg.data
-		if self.State == 0: self.State = None
+		num = msg.data
+		left_bumper = GetBits(num, 24, 1)
+		right_bumper = GetBits(num, 25, 1)
+		if left_bumper or right_bumper: 
+			self.State = True
+		else:
+			self.State = None
 	def Reset(self):
 		pass #self.State = None
 	def __str__(self):
@@ -143,7 +153,6 @@ class RoombaModel(RosNode):
 	def __init__(self, name, loop_interval):
 		super().__init__(name)
 		# ROS, subscribers and publishers
-		#self._ir_intensity_subscriber = self.create_subscription( IrIntensityVector, 'ir_intensity', self._IrIntensityCallback, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
 		self._odom_subscriber = self.create_subscription( RosOdometry, 'odom', self._OdomCallback, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
 		self._bumper_subscriber = self.create_subscription( Int32, 'bumper', self._HazardDetection, QoSProfile(depth=10, reliability=ReliabilityPolicy.BEST_EFFORT) )
 		self._vel_publisher = self.create_publisher( RosTwist, 'cmd_vel', 10 )
@@ -158,15 +167,13 @@ class RoombaModel(RosNode):
 		self._ReflexTriggered = False
 		# debug variable, set this to anything so it will be added by str(self._tmp) in __str__
 		self._tmp = None
-	
-	def _IrIntensityCallback(self, msg):
-		pass #self.IR.ParseTopicMsg(msg)
 		
 	def _OdomCallback(self, msg):
 		self.Odometry.ParseTopicMsg(msg)
 		
 	def _HazardDetection(self, msg):
 		# Bumper
+		int32data = msg.data
 		self.Bumper.ParseTopicMsg(msg)
 		self.TriggerHazard(self.Bumper.State, "bump")
 		# more will be there probably

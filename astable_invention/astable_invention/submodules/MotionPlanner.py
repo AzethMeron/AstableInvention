@@ -124,8 +124,7 @@ class MotionPlanner:
 			rotation = Tools.DegToRad(-30)
 			self.ProcessIRValue(x, y, angle, rotation)
 		if MotionPlanner.CheckIRValue(ir.side_right):
-			#rotation = Tools.DegToRad(-60) # real robot
-			rotation = Tools.DegToRad(60)
+			rotation = Tools.DegToRad(-60) # real robot
 			self.ProcessIRValue(x, y, angle, rotation)
 		
 			
